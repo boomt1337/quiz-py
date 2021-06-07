@@ -3,19 +3,19 @@
 
 
 # Import libraries (if pygame is not found, print something)
-try:
- import pygame
- import sys
- import json
- import pytext
- import requests
- import urllib
- import itertools
- import threading
- import time
-except ModuleNotFoundError:
-     print("Pygame not found, install it with pip install pygame")
-     quit()
+
+import pygame
+import sys
+import json
+import os
+import os.path
+from pygame import surface
+import pytext
+import requests
+import urllib.request
+import itertools
+import threading
+import time
 
 # Variables
 fps = 60 # Maximum FPS the game will run on (default 60)
@@ -26,88 +26,114 @@ chain = 0 # possible game mechanic?
 initalised = False
 header = "https://opentdb.com/api.php?amount{}".format(amount)
 
+font = pygame.font.SysFont(None,45)
 
 
-# Functions and classes
-def online():
-     try:
-          urllib.urlopen('http://216.58.192.142', timeout = 1)
-          return True
-     except urllib.error.URLError as err:
-          return False
+def draw_text(text, font, color, surface, x, y):
+    textobj = font.render(text, 1, color)
+    textrect = textobj.get_rect()
+    textrect.topleft = (x, y)
+    surface.blit(textobj, textrect)
+
+# Functions for handling API calls.
+# This runs if the user chooses to refresh the quiz bank
+# or on first run. 
+# Obviously requires internet, so the program will quit if it is not detected.
+def easyapi():
+    endpoint = "https://opentdb.com/api.php?amount=50&difficulty=easy"
+    headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}
+    hreq = urllib.request.Request(url=endpoint, headers=headers)
+    ldata = urllib.request.urlopen(hreq).read()
+    pdata = json.loads(ldata)
+    return pdata
+
+def mediumapi():
+ endpoint = "https://opentdb.com/api.php?amount=50&difficulty=medium"
+ headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}
+ hreq = urllib.request.Request(url=endpoint, headers=headers)
+ ldata = urllib.request.urlopen(hreq).read()
+ pdata = json.loads(ldata)
+ return pdata
+ 
+def hardapi():
+ endpoint = "https://opentdb.com/api.php?amount=50&difficulty=hard"
+ headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}
+ hreq = urllib.request.Request(url=endpoint, headers=headers)
+ ldata = urllib.request.urlopen(hreq).read()
+ pdata = json.loads(ldata)
+ return pdata
 
 
-def set_text(string, coordx, coordy, fontSize): #Function to set text
+mainClock = pygame.time.Clock()
+from pygame.locals import *
+pygame.init()
+screen = pygame.display.set_mode((700, 700),0,32)
 
-    font = pygame.font.Font('freesansbold.ttf', fontSize) 
-    #(0, 0, 0) is black, to make black text
-    text = font.render(string, True, (0, 0, 0)) 
-    textRect = text.get_rect()
-    textRect.center = (coordx, coordy) 
-    return (text, textRect)
-
-
-def init():
-     # This is a function that checks integrity and loads
-     # api data if the program detects the computer is online.
-     #Else, it will function offline.
-     pygame.init()
-     pygame.font.init()
-     screen = pygame.display.set_mode((1000,1000))
-     screen.fill((0,0,0))
-     initalised = False
-     online()
-     while initalised == False:
-     # Draws text onto the screen
-      pytext.draw("ver 0.1b", (15,26), color=(255,255,255))
-      pytext.draw("pyquiz INIT...", (20,88), color=(255,255,255))
-      pytext.draw("Main", (163,403), color=(255,255,255))
-      pytext.draw("Network", (163,427), color=(255,255,255)
+def initialise():
+ initalised = True
+ while initalised:
+      pygame.event.pump()
+      screen.fill((255,255,255))
+      draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
+      draw_text("PLEASE WAIT", font, (0,0,0),screen,0,300)
+      draw_text("Build composed 6/7/2021", font, (0,0,0),screen,0,640)
+      pygame.display.update()
+      easy = os.path.exists("quizeasy.json")
+      medium = os.path.exists("quizmedium.json")
+      hard = os.path.exists("quizhard.json")
       
-
-
-      
-      
-
-
-
-
-
-
-
-
-
-
-
-
-def main():
-     while True:
-      
-      screen
-      pygame.display.set_caption('pyQuiz running')
-
-      pygame.display.flip()
-      
-
-
-      for event in pygame.event.get():
-           if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-      print(pygame.mouse.get_pos())
-      clock.tick(120)
-# main Game
-while True:
- pygame.init()
- pygame.font.init()
- screen = pygame.display.set_mode((1000,1000))
- if initalised == False:
-      init()
+      if not easy:
+           easyv = easyapi()
+           e = open("quizeasy.json", "x")
+           e.close()
+           with open("quizeasy.json", "w") as easy:
+                easy.write(json.dumps(easyv))
+                e.close()
+      if not medium:
+           mediumv = mediumapi()
+           e = open("quizmedium.json", "x")
+           e.close()
+           with open("quizmedium.json", "w") as easy:
+                easy.write(json.dumps(mediumv))
+                e.close()
+      if not hard:
+           hardv = hardapi()
+           e = open("quizhard.json", "x")
+           e.close()
+           with open("quizhard.json", "w") as hard:
+                hard.write(json.dumps(hardv))
+                e.close()
+      pygame.time.delay(2000)
       break
-      
+ main_menu()
+     
+ pygame.display.update()
+ mainClock.tick(60)
 
 
-main()
+                
+                
 
 
+
+
+def main_menu():
+ in_menu =True
+ 
+ while in_menu:
+       for event in pygame.event.get():
+            if event.type==QUIT:
+                 pygame.quit()
+            screen.fill((0,0,0))
+       draw_text("test", font, (0,0,0),screen,0,0)
+       pygame.display.update()
+       mainClock.tick(60)
+
+
+ 
+
+
+def game():
+     pass
+
+initialise()
