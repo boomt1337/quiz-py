@@ -25,9 +25,12 @@ amount = 0
 chain = 0 # possible game mechanic?
 initalised = False
 header = "https://opentdb.com/api.php?amount{}".format(amount)
+white = (255,255,255)
+clicked = False
+black = (0,0,0)
 
 font = pygame.font.SysFont(None,45)
-
+smallText = pygame.font.SysFont(None,23)
 
 def draw_text(text, font, color, surface, x, y):
     textobj = font.render(text, 1, color)
@@ -62,8 +65,62 @@ def hardapi():
  ldata = urllib.request.urlopen(hreq).read()
  pdata = json.loads(ldata)
  return pdata
+# Class for buttons in the game
+class button():
+	#colours for button and text
+	button_col = (225, 225, 225)
+	hover_col = (220, 220, 220)
+	click_col = (0,128,0)
+	text_col = (0,0,0)
+	width = 180
+	height = 70
 
+	def __init__(self, x, y, text):
+		self.x = x
+		self.y = y
+		self.text = text
 
+	def draw_button(self):
+
+		global clicked
+		action = False
+
+		#get mouse position
+		pos = pygame.mouse.get_pos()
+
+		#create pygame Rect object for the button
+		button_rect = Rect(self.x, self.y, self.width, self.height)
+		
+		#check mouseover and clicked conditions
+		if button_rect.collidepoint(pos):
+			if pygame.mouse.get_pressed()[0] == 1:
+				clicked = True
+				pygame.draw.rect(screen, self.click_col, button_rect)
+			elif pygame.mouse.get_pressed()[0] == 0 and clicked == True:
+				clicked = False
+				action = True
+			else:
+				pygame.draw.rect(screen, self.hover_col, button_rect)
+		else:
+			pygame.draw.rect(screen, self.button_col, button_rect)
+		
+		#add shading to button
+		pygame.draw.line(screen, white, (self.x, self.y), (self.x + self.width, self.y), 2)
+		pygame.draw.line(screen, white, (self.x, self.y), (self.x, self.y + self.height), 2)
+		pygame.draw.line(screen, black, (self.x, self.y + self.height), (self.x + self.width, self.y + self.height), 2)
+		pygame.draw.line(screen, black, (self.x + self.width, self.y), (self.x + self.width, self.y + self.height), 2)
+
+		#add text to button
+		text_img = font.render(self.text, True, self.text_col)
+		text_len = text_img.get_width()
+		screen.blit(text_img, (self.x + int(self.width / 2) - int(text_len / 2), self.y + 25))
+		return action
+
+# Declare all button spawns
+
+play = button(255, 350, "Play")
+Options = button(255, 450, "Options")
+Exit = button(255, 550, "Quit")
 mainClock = pygame.time.Clock()
 from pygame.locals import *
 pygame.init()
@@ -77,6 +134,9 @@ def initialise():
       draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
       draw_text("PLEASE WAIT", font, (0,0,0),screen,0,300)
       draw_text("Build composed 6/7/2021", font, (0,0,0),screen,0,640)
+      
+
+
       pygame.display.update()
       easy = os.path.exists("quizeasy.json")
       medium = os.path.exists("quizmedium.json")
@@ -121,14 +181,19 @@ def main_menu():
  in_menu =True
  
  while in_menu:
-       for event in pygame.event.get():
-            if event.type==QUIT:
-                 pygame.quit()
-            screen.fill((0,0,0))
-       draw_text("test", font, (0,0,0),screen,0,0)
-       pygame.display.update()
-       mainClock.tick(60)
+      pygame.event.pump()
+      screen.fill((255,255,255))
+      draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
+      draw_text("Quiz-py", font, (0,128,0),screen,296,260)
+      if play.draw_button():
+	      print('lol')
+      if Options.draw_button():
+	      print('lol')
+      if Exit.draw_button():
+	      quit()
+      pygame.display.update()
 
+      
 
  
 
