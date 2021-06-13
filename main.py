@@ -208,7 +208,7 @@ def main_menu():
 
 
 def game():
-     print("LOL")
+     print("LO")
 
 def options():
      global difficulty
