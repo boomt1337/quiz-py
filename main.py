@@ -16,6 +16,8 @@ import urllib.request
 import itertools
 import threading
 import time
+import random
+
 
 # Variables
 fps = 60 # Maximum FPS the game will run on (default 60)
@@ -23,6 +25,7 @@ clock = pygame.time.Clock()
 score = 0 # keep track of scores
 amount = 0
 chain = 0 # possible game mechanic?
+delay = 3
 initalised = False
 header = "https://opentdb.com/api.php?amount{}".format(amount)
 white = (255,255,255)
@@ -208,7 +211,29 @@ def main_menu():
 
 
 def game():
-     print("LO")
+     global difficulty
+     if difficulty == "Easy":
+          eata = open("quizeasy.json", "r")
+          data = json.load(eata)
+     elif difficulty == "Medium":
+          mata = open("quizmedium.json", "r")
+          data = json.load(mata)
+     elif difficulty == "Hard":
+          hata = open("quizhard.json", "r")
+          data = json.load(hata)
+     
+     results = data['results']
+     ranq = random.choice(results)
+     rq = ranq['question']
+     ra = ranq['correct_answer']
+     ri = ranq['incorrect_answers']
+     ri.append(ra)
+     print(rq)
+     print(ra)
+     print(ri)
+     
+
+
 
 def options():
      global difficulty
