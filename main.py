@@ -29,6 +29,7 @@ white = (255,255,255)
 clicked = False
 black = (0,0,0)
 
+difficulty = "Easy"
 font = pygame.font.SysFont(None,45)
 smallText = pygame.font.SysFont(None,23)
 
@@ -69,7 +70,7 @@ def hardapi():
 class button():
 	#colours for button and text
 	button_col = (225, 225, 225)
-	hover_col = (220, 220, 220)
+	hover_col = (225, 225, 225)
 	click_col = (0,128,0)
 	text_col = (0,0,0)
 	width = 180
@@ -118,9 +119,17 @@ class button():
 
 # Declare all button spawns
 
+#For the menu
 play = button(255, 350, "Play")
 Options = button(255, 450, "Options")
 Exit = button(255, 550, "Quit")
+#---------------------------------------
+#For the options
+back = button(0,50,"Back")
+reinit = button(124,254,"Refresh")
+diff = button(124,354, "Difficulty")
+
+
 mainClock = pygame.time.Clock()
 from pygame.locals import *
 pygame.init()
@@ -170,8 +179,6 @@ def initialise():
  pygame.display.update()
  mainClock.tick(60)
 
-
-                
                 
 
 
@@ -186,9 +193,11 @@ def main_menu():
       draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
       draw_text("Quiz-py", font, (0,128,0),screen,296,260)
       if play.draw_button():
-	      print('lol')
+           in_menu = False
+           game()
       if Options.draw_button():
-	      print('lol')
+           in_menu = False
+           options()
       if Exit.draw_button():
 	      quit()
       pygame.display.update()
@@ -199,6 +208,30 @@ def main_menu():
 
 
 def game():
-     pass
+     print("LOL")
+
+def options():
+     global difficulty
+     options = True
+     while options:
+          pygame.event.pump()
+          screen.fill((255,255,255))
+          draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
+     
+          if back.draw_button():
+               options = False
+               main_menu()
+          if reinit.draw_button():
+               print("LOL!")
+          if diff.draw_button():
+               if difficulty == "Easy":
+                    difficulty = "Medium"
+               elif difficulty == "Medium":
+                    difficulty = "Hard"
+               elif difficulty == "Hard":
+                    difficulty = "Easy"
+          pygame.display.update()
+
+     
 
 initialise()
