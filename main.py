@@ -6,6 +6,7 @@
 
 import pygame
 import sys
+import platform
 import json
 import os
 import os.path
@@ -24,15 +25,21 @@ fps = 60 # Maximum FPS the game will run on (default 60)
 clock = pygame.time.Clock()
 score = 0 # keep track of scores
 amount = 0
+db = 0
 chain = 0 # possible game mechanic?
 delay = 3
+machine_info = platform.platform()
+pyv = platform.python_version()
 initalised = False
 header = "https://opentdb.com/api.php?amount{}".format(amount)
 white = (255,255,255)
 clicked = False
 black = (0,0,0)
-
+defaultrounds = 10
 difficulty = "Easy"
+vans = []
+
+
 font = pygame.font.SysFont(None,45)
 smallText = pygame.font.SysFont(None,23)
 
@@ -47,7 +54,7 @@ def draw_text(text, font, color, surface, x, y):
 # or on first run. 
 # Obviously requires internet, so the program will quit if it is not detected.
 def easyapi():
-    endpoint = "https://opentdb.com/api.php?amount=50&difficulty=easy"
+    endpoint = "https://opentdb.com/api.php?amount=50&difficulty=easy&type=multiple"
     headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}
     hreq = urllib.request.Request(url=endpoint, headers=headers)
     ldata = urllib.request.urlopen(hreq).read()
@@ -55,7 +62,7 @@ def easyapi():
     return pdata
 
 def mediumapi():
- endpoint = "https://opentdb.com/api.php?amount=50&difficulty=medium"
+ endpoint = "https://opentdb.com/api.php?amount=50&difficulty=medium&type=multiple"
  headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}
  hreq = urllib.request.Request(url=endpoint, headers=headers)
  ldata = urllib.request.urlopen(hreq).read()
@@ -63,7 +70,7 @@ def mediumapi():
  return pdata
  
 def hardapi():
- endpoint = "https://opentdb.com/api.php?amount=50&difficulty=hard"
+ endpoint = "https://opentdb.com/api.php?amount=50&difficulty=hard&type=multiple"
  headers = {'User-Agent':'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:23.0) Gecko/20100101 Firefox/23.0'}
  hreq = urllib.request.Request(url=endpoint, headers=headers)
  ldata = urllib.request.urlopen(hreq).read()
@@ -120,7 +127,7 @@ class button():
 		screen.blit(text_img, (self.x + int(self.width / 2) - int(text_len / 2), self.y + 25))
 		return action
 
-# Declare all button spawns
+# Declare all (global) button spawns
 
 #For the menu
 play = button(255, 350, "Play")
@@ -144,8 +151,9 @@ def initialise():
       pygame.event.pump()
       screen.fill((255,255,255))
       draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
+      draw_text(machine_info, smallText, (0,0,0),screen,0,50)
       draw_text("PLEASE WAIT", font, (0,0,0),screen,0,300)
-      draw_text("Build composed 6/7/2021", font, (0,0,0),screen,0,640)
+      draw_text("Build composed 15/6/2021", font, (0,0,0),screen,0,640)
       
 
 
@@ -194,6 +202,8 @@ def main_menu():
       pygame.event.pump()
       screen.fill((255,255,255))
       draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
+      draw_text(machine_info, smallText, (0,0,0),screen,0,30)
+      draw_text("Python Version: {}".format(pyv), smallText, (0,0,0),screen,0,50)
       draw_text("Quiz-py", font, (0,128,0),screen,296,260)
       if play.draw_button():
            in_menu = False
@@ -221,17 +231,77 @@ def game():
      elif difficulty == "Hard":
           hata = open("quizhard.json", "r")
           data = json.load(hata)
+     # Splice data from JSON upstream, to get questiown, correct answers and incorrect
+     while True:
+          
+          
+          global db
+          if db == 0:
+
+
+              results = data['results']
+              ranq = random.choice(results)
+              rq = ranq['question']
+              ra = ranq['correct_answer']
+              ri = ranq['incorrect_answers']
+
+              vans.extend(ri)
+              vans.append(ra)
+     # Local button data (to use in this function only)
+              random.shuffle(vans)
+              pygame.time.delay(12)
+              db = db + 1
+            
+
      
-     results = data['results']
-     ranq = random.choice(results)
-     rq = ranq['question']
-     ra = ranq['correct_answer']
-     ri = ranq['incorrect_answers']
-     ri.append(ra)
-     print(rq)
-     print(ra)
-     print(ri)
+          
+          screen.fill((255,255,255))
+          btn1 = button(89, 430, vans[0])
+          btn2 = button(89, 560, vans[1])
+          btn3 = button(465,433,vans[2])
+          btn4 = button(516, 557, vans[3])
+
+          for event in pygame.event.get():
+               if event.type == pygame.QUIT:
+                    print("attempted to leave")
+               elif event.type == pygame.MOUSEBUTTONUP:
+                    print(pygame.mouse.get_pos())
+
      
+          if btn1.draw_button():
+
+               if vans[0] == ra:
+
+                    print("lawl")
+                    db = True
+               else:
+                    print("bawl")
+                    db = True
+          if btn2.draw_button():
+               if vans[1] == ra:
+                    print("lawl")
+                    db = True
+               else:
+                    print("bawl")
+                    db = True
+          if btn3.draw_button():
+               if vans[2] == ra:
+                    print("lawl")
+                    db = True
+               else:
+                    print("bawl")
+                    db = True
+          if btn4.draw_button():
+               if vans[3] == ra:
+                    print("lawl")
+                    db = True
+               else:
+                    print("bawl")
+                    db = True
+      
+          pygame.display.update()
+          mainClock.tick(60)
+ 
 
 
 
@@ -242,6 +312,8 @@ def options():
           pygame.event.pump()
           screen.fill((255,255,255))
           draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
+          draw_text(machine_info, smallText, (0,0,0),screen,0,30)
+          draw_text("Python Version:{}".format(pyv), smallText,(0,0,0), screen,0,50)
      
           if back.draw_button():
                options = False
@@ -256,6 +328,7 @@ def options():
                elif difficulty == "Hard":
                     difficulty = "Easy"
           pygame.display.update()
+
 
      
 
