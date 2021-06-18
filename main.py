@@ -39,7 +39,7 @@ black = (0,0,0)
 defaultrounds = 10
 currentround = 0
 defaultmax = 30
-correctv = 0 
+correctv = 23 
 incorrectv = 0
 difficulty = "Easy"
 vans = []
@@ -138,9 +138,9 @@ class button():
 # Declare all (global) button spawns
 
 #For the menu
-play = button(255, 350, "Play")
-Options = button(255, 450, "Options")
-Exit = button(255, 550, "Quit")
+play = button(470, 350, "Play")
+Options = button(470, 450, "Options")
+Exit = button(470, 550, "Quit")
 #---------------------------------------
 #For the options
 back = button(0,50,"Back")
@@ -158,7 +158,7 @@ def initialise():
  initalised = True
  while initalised:
       pygame.event.pump()
-      screen.fill((255,255,255))
+      screen.fill((255,255,255))# Splice data from JSON upstream, to get questiown, correct answers and incorrect
       draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
       draw_text(machine_info, font, (0,0,0),screen,0,50)
       draw_text("PLEASE WAIT", bigText, (0,0,0),screen,0,300)
@@ -205,6 +205,7 @@ def initialise():
 
 
 def main_menu():
+
  in_menu =True
  pygame.mixer.music.load("assets/title.mp3")
  pygame.mixer.music.play()
@@ -220,7 +221,7 @@ def main_menu():
       draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
       draw_text(machine_info, font, (0,0,0),screen,0,30)
       draw_text("Python Version: {}".format(pyv), font, (0,0,0),screen,0,50)
-      draw_text("Quiz-py", bigText, (0,128,0),screen,296,260)
+      draw_text("Quiz-py", bigText, (0,128,0),screen,470,270)
       if play.draw_button():
            in_menu = False
            game()
@@ -247,15 +248,18 @@ def game():
      elif difficulty == "Hard":
           hata = open("data/quizhard.json", "r")
           data = json.load(hata)
-     # Splice data from JSON upstream, to get questiown, correct answers and incorrect
-     while True:
+     
+     in_game = True
+     while in_game == True:
           
           
-          global db
+          global db, currentround, defaultmax
           if db == 0:
               print("true man")
-
-
+              if currentround > defaultmax:
+                   in_game = False
+                   results()
+               
               results = data['results']
               ranq = random.choice(results)
               rq = ranq['question']
@@ -273,7 +277,13 @@ def game():
             
 
      
-          
+          if currentround > defaultmax:
+               in_game = False
+               results()
+               print("results")
+          else:
+               pass
+      
           screen.fill((255,255,255))
           btn1 = button(89, 430, vans[0])
           btn2 = button(89, 560, vans[1])
@@ -361,7 +371,52 @@ def options():
 
 #Functions for Game Over, Correct and Incorrect
 def results():
-     pass
+     global difficulty, correctv, incorrectv
+     resultsv = True
+     while resultsv == True:
+          screen.fill((255,255,255))
+
+
+          for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    quit()
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    print(pygame.mouse.get_pos())
+
+          play_again = button(1087,503, "Play Again")
+          title = button(107, 503, "Return to Title")
+          draw_text("Difficulty: {}".format(difficulty), font, (0,128,0), screen, 20,14)
+          draw_text("GAME OVER", font, (0,0,0), screen, 20,29)
+          draw_text("Results:", font, (0,0,0), screen, 318,201)
+          draw_text("Correct: {}".format(correctv), font, (0,128,0), screen, 318,301)
+          draw_text("Incorrect: {}".format(incorrectv), font, (255,0,0), screen, 318,401)
+          if correctv <= 5:
+               draw_text("Your rank is: F",font,(0,0,0),screen,318,501)
+          elif correctv <= 10:
+               draw_text("Your rank is: E",font,(0,0,0),screen,318,501)
+          elif correctv <= 15:
+               draw_text("Your rank is: C",font,(0,0,0),screen,318,501)
+          elif correctv <= 20:
+               draw_text("Your rank is: B",font,(0,0,0),screen,318,501)
+          elif correctv <= 24:
+               draw_text("Your rank is: A",font,(0,0,0),screen,318,501)
+          elif correctv <= 27:
+               draw_text("Your rank is: AA",font,(0,0,0),screen,318,501)
+          elif correctv <= 29:
+               draw_text("Your rank is: AAA",font,(0,0,0),screen,318,501)
+          elif correctv > 30:
+               draw_text("Your rank is: S", font,(0,0,0), screen, 318,501)
+          if play_again.draw_button():
+               resultsv = False
+               game()
+          if title.draw_button():
+               resultsv = False
+               main_menu()
+          
+          pygame.display.update()
+          
+
+
 
 def correct():
      global db, currentround, defaultmax, chain, correctv
@@ -370,7 +425,7 @@ def correct():
      currentround = currentround + 1
      correctv = correctv + 1
      if currentround >= defaultmax:
-          print("waa")
+          results()
      else:
           vans.clear()
           #results.pop(ranq)
@@ -385,7 +440,7 @@ def incorrect():
      incorrectv = incorrectv + 1
      currentround = currentround + 1
      if currentround >= defaultmax:
-          print("waa")
+          results()
      else:
           vans.clear()
           db = db - 1
