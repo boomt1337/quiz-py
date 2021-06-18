@@ -11,9 +11,10 @@ import json
 import os
 import os.path
 from pygame import surface
-import pytext
+
 import requests
 import urllib.request
+import textwrap
 import itertools
 import threading
 import time
@@ -36,12 +37,19 @@ white = (255,255,255)
 clicked = False
 black = (0,0,0)
 defaultrounds = 10
+currentround = 0
+defaultmax = 30
+correctv = 0 
+incorrectv = 0
 difficulty = "Easy"
 vans = []
 
+pygame.init()
+font = pygame.font.SysFont(None,23)
+bigText = pygame.font.SysFont(None,45)
 
-font = pygame.font.SysFont(None,45)
-smallText = pygame.font.SysFont(None,23)
+# Text functions
+# draw_text for standard text
 
 def draw_text(text, font, color, surface, x, y):
     textobj = font.render(text, 1, color)
@@ -118,8 +126,8 @@ class button():
 		#add shading to button
 		pygame.draw.line(screen, white, (self.x, self.y), (self.x + self.width, self.y), 2)
 		pygame.draw.line(screen, white, (self.x, self.y), (self.x, self.y + self.height), 2)
-		pygame.draw.line(screen, black, (self.x, self.y + self.height), (self.x + self.width, self.y + self.height), 2)
-		pygame.draw.line(screen, black, (self.x + self.width, self.y), (self.x + self.width, self.y + self.height), 2)
+		pygame.draw.line(screen, white, (self.x, self.y + self.height), (self.x + self.width, self.y + self.height), 2)
+		pygame.draw.line(screen, white, (self.x + self.width, self.y), (self.x + self.width, self.y + self.height), 2)
 
 		#add text to button
 		text_img = font.render(self.text, True, self.text_col)
@@ -138,49 +146,50 @@ Exit = button(255, 550, "Quit")
 back = button(0,50,"Back")
 reinit = button(124,254,"Refresh")
 diff = button(124,354, "Difficulty")
-
+rect = pygame.Rect(100, 100, 300, 300)
 
 mainClock = pygame.time.Clock()
 from pygame.locals import *
 pygame.init()
-screen = pygame.display.set_mode((700, 700),0,32)
+screen = pygame.display.set_mode((1200, 700),0,32)
 
+ 
 def initialise():
  initalised = True
  while initalised:
       pygame.event.pump()
       screen.fill((255,255,255))
       draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
-      draw_text(machine_info, smallText, (0,0,0),screen,0,50)
-      draw_text("PLEASE WAIT", font, (0,0,0),screen,0,300)
-      draw_text("Build composed 15/6/2021", font, (0,0,0),screen,0,640)
+      draw_text(machine_info, font, (0,0,0),screen,0,50)
+      draw_text("PLEASE WAIT", bigText, (0,0,0),screen,0,300)
+      draw_text("Build composed 15/6/2021", bigText, (0,0,0),screen,0,640)
       
 
 
       pygame.display.update()
-      easy = os.path.exists("quizeasy.json")
-      medium = os.path.exists("quizmedium.json")
-      hard = os.path.exists("quizhard.json")
+      easy = os.path.exists("data/quizeasy.json")
+      medium = os.path.exists("data/quizmedium.json")
+      hard = os.path.exists("data/quizhard.json")
       
       if not easy:
            easyv = easyapi()
-           e = open("quizeasy.json", "x")
+           e = open("data/quizeasy.json", "x")
            e.close()
-           with open("quizeasy.json", "w") as easy:
+           with open("data/quizeasy.json", "w") as easy:
                 easy.write(json.dumps(easyv))
                 e.close()
       if not medium:
            mediumv = mediumapi()
-           e = open("quizmedium.json", "x")
+           e = open("data/quizmedium.json", "x")
            e.close()
-           with open("quizmedium.json", "w") as easy:
+           with open("data/quizmedium.json", "w") as easy:
                 easy.write(json.dumps(mediumv))
                 e.close()
       if not hard:
            hardv = hardapi()
-           e = open("quizhard.json", "x")
+           e = open("data/quizhard.json", "x")
            e.close()
-           with open("quizhard.json", "w") as hard:
+           with open("data/quizhard.json", "w") as hard:
                 hard.write(json.dumps(hardv))
                 e.close()
       pygame.time.delay(2000)
@@ -197,14 +206,21 @@ def initialise():
 
 def main_menu():
  in_menu =True
- 
+ pygame.mixer.music.load("assets/title.mp3")
+ pygame.mixer.music.play()
  while in_menu:
-      pygame.event.pump()
+      for event in pygame.event.get():
+               if event.type == pygame.QUIT:
+                    quit()
+               elif event.type == pygame.MOUSEBUTTONUP:
+                    print(pygame.mouse.get_pos())
+          
       screen.fill((255,255,255))
+
       draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
-      draw_text(machine_info, smallText, (0,0,0),screen,0,30)
-      draw_text("Python Version: {}".format(pyv), smallText, (0,0,0),screen,0,50)
-      draw_text("Quiz-py", font, (0,128,0),screen,296,260)
+      draw_text(machine_info, font, (0,0,0),screen,0,30)
+      draw_text("Python Version: {}".format(pyv), font, (0,0,0),screen,0,50)
+      draw_text("Quiz-py", bigText, (0,128,0),screen,296,260)
       if play.draw_button():
            in_menu = False
            game()
@@ -223,13 +239,13 @@ def main_menu():
 def game():
      global difficulty
      if difficulty == "Easy":
-          eata = open("quizeasy.json", "r")
+          eata = open("data/quizeasy.json", "r")
           data = json.load(eata)
      elif difficulty == "Medium":
-          mata = open("quizmedium.json", "r")
+          mata = open("data/quizmedium.json", "r")
           data = json.load(mata)
      elif difficulty == "Hard":
-          hata = open("quizhard.json", "r")
+          hata = open("data/quizhard.json", "r")
           data = json.load(hata)
      # Splice data from JSON upstream, to get questiown, correct answers and incorrect
      while True:
@@ -237,11 +253,13 @@ def game():
           
           global db
           if db == 0:
+              print("true man")
 
 
               results = data['results']
               ranq = random.choice(results)
               rq = ranq['question']
+              rqe = (textwrap.fill(rq, 30))
               ra = ranq['correct_answer']
               ri = ranq['incorrect_answers']
 
@@ -250,6 +268,7 @@ def game():
      # Local button data (to use in this function only)
               random.shuffle(vans)
               pygame.time.delay(12)
+              print(vans)
               db = db + 1
             
 
@@ -258,46 +277,45 @@ def game():
           screen.fill((255,255,255))
           btn1 = button(89, 430, vans[0])
           btn2 = button(89, 560, vans[1])
-          btn3 = button(465,433,vans[2])
-          btn4 = button(516, 557, vans[3])
+          btn3 = button(924,430,vans[2])
+          btn4 = button(924, 560, vans[3])
 
           for event in pygame.event.get():
                if event.type == pygame.QUIT:
                     print("attempted to leave")
                elif event.type == pygame.MOUSEBUTTONUP:
                     print(pygame.mouse.get_pos())
+          
+          draw_text("Difficulty: {}".format(difficulty), font, (0,128,0), screen, 20,14)
+          draw_text("Question {} out of {}".format(currentround, defaultmax), font, (0,0,0), screen, 20,29)
+          draw_text("Correct: {}".format(correctv), font, (0,0,0), screen, 1053,14)
+          draw_text("Incorrect: {}".format(incorrectv), font, (0,0,0), screen, 1053,29)
+          draw_text("CHAIN: x{}".format(chain), font, (0,0,0), screen, 419,399)
 
-     
+
+          draw_text(rq, font, (0,0,0), screen, 227,239)
           if btn1.draw_button():
 
                if vans[0] == ra:
 
-                    print("lawl")
-                    db = True
+                    correct()
                else:
-                    print("bawl")
-                    db = True
+                    incorrect()
           if btn2.draw_button():
                if vans[1] == ra:
-                    print("lawl")
-                    db = True
+                    correct()
                else:
-                    print("bawl")
-                    db = True
+                    incorrect()
           if btn3.draw_button():
                if vans[2] == ra:
-                    print("lawl")
-                    db = True
+                    correct()
                else:
-                    print("bawl")
-                    db = True
+                    incorrect()
           if btn4.draw_button():
                if vans[3] == ra:
-                    print("lawl")
-                    db = True
+                    correct()
                else:
-                    print("bawl")
-                    db = True
+                    incorrect()
       
           pygame.display.update()
           mainClock.tick(60)
@@ -309,17 +327,28 @@ def options():
      global difficulty
      options = True
      while options:
-          pygame.event.pump()
+          for event in pygame.event.get():
+               if event.type == pygame.QUIT:
+                    quit()
+               elif event.type == pygame.MOUSEBUTTONUP:
+                    print(pygame.mouse.get_pos())
+
+
           screen.fill((255,255,255))
           draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
-          draw_text(machine_info, smallText, (0,0,0),screen,0,30)
-          draw_text("Python Version:{}".format(pyv), smallText,(0,0,0), screen,0,50)
-     
+          draw_text(machine_info, font, (0,0,0),screen,0,30)
+          draw_text("Python Version:{}".format(pyv), font,(0,0,0), screen,0,50)
+          draw_text("Reloads the JSON quiz store. This will reset and randomise a batch of new questions.", font, (0,0,0), screen, 419,287)
+          draw_text("Current Difficulty: {}".format(difficulty), font, (0,0,0), screen, 419,399)
           if back.draw_button():
                options = False
                main_menu()
           if reinit.draw_button():
-               print("LOL!")
+               options = False
+               os.remove('data/quizeasy.json')
+               os.remove('data/quizmedium.json')
+               os.remove('data/quizhard.json')
+               initialise()
           if diff.draw_button():
                if difficulty == "Easy":
                     difficulty = "Medium"
@@ -330,6 +359,37 @@ def options():
           pygame.display.update()
 
 
-     
+#Functions for Game Over, Correct and Incorrect
+def results():
+     pass
+
+def correct():
+     global db, currentround, defaultmax, chain, correctv
+     pygame.mixer.music.load('assets/correct.mp3')
+     pygame.mixer.music.play()
+     currentround = currentround + 1
+     correctv = correctv + 1
+     if currentround >= defaultmax:
+          print("waa")
+     else:
+          vans.clear()
+          #results.pop(ranq)
+          db = db - 1
+     if chain <= 0 or chain > 0:
+          chain = chain + 1
+
+def incorrect():
+     global db, currentround, chain, defaultmax, incorrectv
+     pygame.mixer.music.load('assets/wrong.mp3')
+     pygame.mixer.music.play()
+     incorrectv = incorrectv + 1
+     currentround = currentround + 1
+     if currentround >= defaultmax:
+          print("waa")
+     else:
+          vans.clear()
+          db = db - 1
+     if chain > 0:
+          chain = 0
 
 initialise()
