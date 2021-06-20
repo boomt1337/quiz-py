@@ -1,5 +1,5 @@
-# AS91896 internal
-# Heeju Shim 2021
+# BLANKED
+# BLANKED
 
 
 # Import libraries (if pygame is not found, print something)
