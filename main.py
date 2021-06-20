@@ -162,7 +162,7 @@ def initialise():
       draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
       draw_text(machine_info, font, (0,0,0),screen,0,50)
       draw_text("PLEASE WAIT", bigText, (0,0,0),screen,0,300)
-      draw_text("Build composed 15/6/2021", bigText, (0,0,0),screen,0,640)
+      draw_text("Build composed 20/6/2021", bigText, (0,0,0),screen,0,640)
       
 
 
@@ -203,6 +203,17 @@ def initialise():
 
 
 
+def quizinit():
+     global db,currentround,correctv,incorrectv
+     if db > 0:
+          db = 0
+     if currentround > 0:
+          currentround = 0
+     if correctv > 0:
+          correctv = 0
+     if incorrectv > 0:
+          incorrectv = 0
+
 
 def main_menu():
 
@@ -221,9 +232,11 @@ def main_menu():
       draw_text("ver 0.1b", font, (0,0,0),screen,0,0)
       draw_text(machine_info, font, (0,0,0),screen,0,30)
       draw_text("Python Version: {}".format(pyv), font, (0,0,0),screen,0,50)
+      draw_text("EVENT MODE![Evaluation Release]", font, (0,0,0),screen,0,70)
       draw_text("Quiz-py", bigText, (0,128,0),screen,470,270)
       if play.draw_button():
            in_menu = False
+           quizinit()
            game()
       if Options.draw_button():
            in_menu = False
@@ -238,7 +251,7 @@ def main_menu():
 
 
 def game():
-     global difficulty
+     global difficulty, db, currentround, defaultmax
      if difficulty == "Easy":
           eata = open("data/quizeasy.json", "r")
           data = json.load(eata)
@@ -251,9 +264,7 @@ def game():
      
      in_game = True
      while in_game == True:
-          
-          
-          global db, currentround, defaultmax
+
           if db == 0:
               print("true man")
               if currentround > defaultmax:
@@ -371,7 +382,7 @@ def options():
 
 #Functions for Game Over, Correct and Incorrect
 def results():
-     global difficulty, correctv, incorrectv
+     global difficulty, correctv, incorrectv, db
      resultsv = True
      while resultsv == True:
           screen.fill((255,255,255))
@@ -383,13 +394,14 @@ def results():
                 elif event.type == pygame.MOUSEBUTTONUP:
                     print(pygame.mouse.get_pos())
 
-          play_again = button(1087,503, "Play Again")
-          title = button(107, 503, "Return to Title")
+          play_again = button(188,649, "Play Again")
+          title = button(1038, 649, "Return to Title")
           draw_text("Difficulty: {}".format(difficulty), font, (0,128,0), screen, 20,14)
           draw_text("GAME OVER", font, (0,0,0), screen, 20,29)
           draw_text("Results:", font, (0,0,0), screen, 318,201)
           draw_text("Correct: {}".format(correctv), font, (0,128,0), screen, 318,301)
           draw_text("Incorrect: {}".format(incorrectv), font, (255,0,0), screen, 318,401)
+          # Gives user a rank
           if correctv <= 5:
                draw_text("Your rank is: F",font,(0,0,0),screen,318,501)
           elif correctv <= 10:
@@ -408,6 +420,7 @@ def results():
                draw_text("Your rank is: S", font,(0,0,0), screen, 318,501)
           if play_again.draw_button():
                resultsv = False
+               quizinit()
                game()
           if title.draw_button():
                resultsv = False
@@ -448,3 +461,4 @@ def incorrect():
           chain = 0
 
 initialise()
+
